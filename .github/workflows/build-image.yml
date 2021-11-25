@@ -11,14 +11,17 @@ on:
         required: true
       PAT_OPENBAYES_BOT:
         required: true
-
-env:
-  GHCR_SLUG: ghcr.io/signcl/openbayes-docs
-  UHUB_SLUG: uhub.service.ucloud.cn/openbayes/openbayes-docs
+    outputs:
+      firstword:
+        description: "Image tag from docker/metadata-action"
+        value: ${{ jobs.build.outputs.version }}
 
 jobs:
-  build-n-deploy:
+  build:
     runs-on: self-hosted
+
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
 
     steps:
     - name: Get current date
