@@ -1,0 +1,83 @@
+name: Build Image
+
+on:
+  workflow_call:
+    secrets:
+      UCLOUD_HUB:
+        required: true
+      UCLOUD_USER:
+        required: true
+      UCLOUD_PASS:
+        required: true
+      PAT_OPENBAYES_BOT:
+        required: true
+
+env:
+  GHCR_SLUG: ghcr.io/signcl/openbayes-docs
+  UHUB_SLUG: uhub.service.ucloud.cn/openbayes/openbayes-docs
+
+jobs:
+  build-n-deploy:
+    runs-on: self-hosted
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        # Fetch all history for Docusaurus `showLastUpdateTime` to work
+        # https://github.com/facebook/docusaurus/issues/2798
+        fetch-depth: 0
+
+    - name: Get current date
+      id: date
+      run: echo "::set-output name=date::$(date +'%y%m%d%H%M%S')"
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v1
+
+    - name: Set up Docker Buildx
+      id: buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Available platforms
+      run: echo ${{ steps.buildx.outputs.platforms }}
+
+    - name: Login to GitHub Container Registry
+      if: github.event_name != 'pull_request'
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Login to UCloud UHub
+      if: github.event_name != 'pull_request'
+      uses: docker/login-action@v1
+      with:
+        registry: ${{ secrets.UCLOUD_HUB }}
+        username: ${{ secrets.UCLOUD_USER }}
+        password: ${{ secrets.UCLOUD_PASS }}
+
+    - name: Docker meta
+      id: meta
+      uses: docker/metadata-action@v3
+      with:
+        images: |
+          ${{ env.GHCR_SLUG }}
+          ${{ env.UHUB_SLUG }}
+        tags: |
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=semver,pattern={{major}}
+          type=sha,prefix=${{ steps.date.outputs.date }}-
+
+    - name: Build and push images
+      uses: docker/bake-action@v1
+      with:
+        files: |
+          ./docker-bake.hcl
+          ${{ steps.meta.outputs.bake-file }}
+        targets: build-all
+        push: ${{ github.event_name != 'pull_request' }}
+        set: |
+          *.cache-from=type=registry,ref=${{ env.GHCR_SLUG }}:buildcache
+          *.cache-to=type=registry,ref=${{ env.GHCR_SLUG }}:buildcache,mode=max
