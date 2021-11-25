@@ -1,17 +1,93 @@
-name: Octo Organization CI
+name: Build Docker Image
 
 on:
   push:
-    branches: [ $default-branch ]
+    branches:
+      - $default-branch
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
   pull_request:
     branches: [ $default-branch ]
+
+env:
+  # TODO: Change repo name to your own
+  DOCKERHUB_SLUG: openbayes/repo
+  GHCR_SLUG: ghcr.io/signcl/repo
+  UHUB_SLUG: uhub.service.ucloud.cn/openbayes/repo
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    # runs-on: self-hosted
 
     steps:
       - uses: actions/checkout@v2
+        # with:
+        #   fetch-depth: 0
 
-      - name: Run a one-line script
-        run: echo Hello from Octo Organization
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%y%m%d%H%M')"
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Available platforms
+        run: echo ${{ steps.buildx.outputs.platforms }}
+
+      - name: Log in to Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASS }}
+
+      - name: Login to GitHub Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to UCloud UHub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ secrets.UCLOUD_HUB }}
+          username: ${{ secrets.UCLOUD_USER }}
+          password: ${{ secrets.UCLOUD_PASS }}
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: |
+            ${{ env.GHCR_SLUG }}
+            ${{ env.UHUB_SLUG }}
+          tags: |
+            type=edge
+            type=schedule
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha,prefix=sha-${{ steps.date.outputs.date }}-
+
+      - name: Build and push images
+        uses: docker/bake-action@v1
+        with:
+          files: |
+            ./docker-bake.hcl
+            ${{ steps.meta.outputs.bake-file }}
+          targets: build-all
+          push: ${{ github.event_name != 'pull_request' }}
+          set: |
+            *.cache-from=type=registry,ref=${{ env.GHCR_SLUG }}:buildcache
+            *.cache-to=type=registry,ref=${{ env.GHCR_SLUG }}:buildcache,mode=max
