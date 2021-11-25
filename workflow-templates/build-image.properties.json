@@ -1,13 +1,13 @@
 {
-  "name": "Octo Organization Workflow",
-  "description": "Octo Organization CI workflow template.",
-  "iconName": "example-icon",
+  "name": "Build Docker Image",
+  "description": "Build Docker Image and push to selected registries",
+  "iconName": "build-image",
   "categories": [
-      "Go"
+    "Docker"
   ],
   "filePatterns": [
-      "package.json$",
-      "^Dockerfile",
-      ".*\\.md$"
+    "package.json$",
+    "^Dockerfile",
+    ".*\\.md$"
   ]
 }
