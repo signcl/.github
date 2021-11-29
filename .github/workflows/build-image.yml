@@ -77,8 +77,8 @@ jobs:
       uses: docker/metadata-action@v3
       with:
         images: |
-          ${{ inputs.ghcr_slug }}
           ${{ inputs.uhub_slug }}
+          ${{ inputs.ghcr_slug }}
         tags: |
           type=semver,pattern={{version}}
           type=semver,pattern={{major}}.{{minor}}
