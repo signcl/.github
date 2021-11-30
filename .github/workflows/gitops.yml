@@ -1,0 +1,30 @@
+name: Build Image
+
+on:
+  workflow_call:
+    secrets:
+      PAT_TOKEN:
+        required: true
+    inputs:
+      repository:
+        required: true
+        type: string
+      event_type:
+        required: true
+        type: string
+      client_payload:
+        required: true
+        type: string
+
+jobs:
+  rancher-dispatch:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Rancher Repository Dispatch
+      if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v')
+      uses: peter-evans/repository-dispatch@v1
+      with:
+        token: ${{ secrets.PAT_TOKEN }}
+        repository: ${{ inputs.repository }}
+        event-type: ${{ inputs.event_type }}
+        client-payload: ${{ inputs.client_payload }}
