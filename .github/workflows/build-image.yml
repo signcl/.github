@@ -22,7 +22,7 @@ on:
     outputs:
       version:
         description: "Image tag from docker/metadata-action"
-        value: ${{ jobs.build.outputs.version }}
+        value: ${{ jobs.build-image.outputs.version }}
 
 jobs:
   build-image:
