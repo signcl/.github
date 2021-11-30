@@ -80,9 +80,9 @@ jobs:
           ${{ inputs.uhub_slug }}
           ${{ inputs.ghcr_slug }}
         tags: |
-          type=semver,pattern={{version}}
-          type=semver,pattern={{major}}.{{minor}}
-          type=semver,pattern={{major}}
+          type=semver,pattern=v{{version}}
+          type=semver,pattern=v{{major}}.{{minor}}
+          type=semver,pattern=v{{major}}
           type=sha,prefix=${{ steps.date.outputs.date }}-
 
     - name: Build and push images
