@@ -25,7 +25,7 @@ on:
         value: ${{ jobs.build.outputs.version }}
 
 jobs:
-  build:
+  build-image:
     runs-on: self-hosted
 
     outputs:
