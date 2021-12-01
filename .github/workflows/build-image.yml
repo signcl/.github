@@ -96,3 +96,18 @@ jobs:
         set: |
           *.cache-from=type=registry,ref=${{ inputs.ghcr_slug }}:buildcache
           *.cache-to=type=registry,ref=${{ inputs.ghcr_slug }}:buildcache,mode=max
+
+    - name: Check manifest
+      if: github.event_name != 'pull_request'
+      run: |
+        docker buildx imagetools inspect ${{ inputs.uhub_slug }}:${{ steps.meta.outputs.version }}
+        docker buildx imagetools inspect ${{ inputs.ghcr_slug }}:${{ steps.meta.outputs.version }}
+
+    # May slow down workflow process. Disabled by default
+    # - name: Inspect image
+    #   if: github.event_name != 'pull_request'
+    #   run: |
+    #     docker pull ${{ inputs.uhub_slug }}:${{ steps.meta.outputs.version }}
+    #     docker image inspect ${{ inputs.uhub_slug }}:${{ steps.meta.outputs.version }}
+    #     docker pull ${{ inputs.ghcr_slug }}:${{ steps.meta.outputs.version }}
+    #     docker image inspect ${{ inputs.ghcr_slug }}:${{ steps.meta.outputs.version }}
