@@ -6,7 +6,6 @@
     "Docker"
   ],
   "filePatterns": [
-    "package.json$",
     "docker-bake.hcl",
     "^Dockerfile"
   ]
