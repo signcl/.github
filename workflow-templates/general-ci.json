@@ -1,0 +1,13 @@
+{
+  "name": "General CI Template",
+  "description": "Build project, create container images and push them to selected registries",
+  "iconName": "general-ci",
+  "categories": [
+    "Docker"
+  ],
+  "filePatterns": [
+    "package.json$",
+    "docker-bake.hcl",
+    "^Dockerfile"
+  ]
+}

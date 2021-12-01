@@ -1,5 +1,5 @@
 {
-  "name": "Build Docker Image",
+  "name": "Build Docker Image (Deprecated)",
   "description": "Build Docker Image and push to selected registries",
   "iconName": "build-image",
   "categories": [
