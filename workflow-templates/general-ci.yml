@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - '**'
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  # TODO: change this job according to the project
+  cra:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+          cache: 'yarn'
+
+      - name: Install node deps
+        run: yarn install --frozen-lockfile
+
+      - name: Test
+        run: yarn test
+
+      - name: Build
+        run: |
+          REACT_APP_GIT_SHA=`echo $GITHUB_SHA | cut -c 1-7`
+          yarn build
+
+      - name: Zip artifacts
+        run: tar -cvf artifact.tar build
+
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: build-artifact
+          path: artifact.tar
+
+  docker:
+    # TODO: change this name according to the previous job
+    needs: cra
+    uses: signcl/.github/.github/workflows/build-image.yml@master
+    with:
+      # TODO: update slugs according to the project
+      artifact_name: build-artifact
+      ghcr_slug: ghcr.io/signcl/openbayes-console
+      uhub_slug: uhub.service.ucloud.cn/openbayes/openbayes-console
+    secrets:
+      UCLOUD_HUB: ${{ secrets.UCLOUD_HUB }}
+      UCLOUD_USER: ${{ secrets.UCLOUD_USER }}
+      UCLOUD_PASS: ${{ secrets.UCLOUD_PASS }}
+
+  gitops:
+    needs: docker
+    uses: signcl/.github/.github/workflows/gitops.yml@master
+    with:
+      repository: signcl/rancher-gitops
+      event_type: update-image-tag-event
+      # TODO: change this payload according to the project
+      client_payload: '{"project": "openbayes-console", "propertyPath": "openbayes_console.deployment.imageTag", "value": "${{ needs.docker.outputs.version }}"}'
+    secrets:
+      PAT_TOKEN: ${{ secrets.PAT_OPENBAYES_BOT }}
