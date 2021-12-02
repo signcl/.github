@@ -114,6 +114,7 @@ jobs:
           ${{ inputs.acr_slug }}
           ${{ inputs.uhub_slug }}
           ${{ inputs.ghcr_slug }}
+          ${{ inputs.hub_slug }}
         tags: |
           type=semver,pattern=v{{version}}
           type=semver,pattern=v{{major}}.{{minor}}
