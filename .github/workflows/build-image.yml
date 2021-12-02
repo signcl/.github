@@ -11,7 +11,8 @@ on:
         required: true
     inputs:
       artifact_name:
-        required: true
+        description: 'Artifact to download and unpack before building image'
+        required: false
         type: string
       ghcr_slug:
         required: true
@@ -36,10 +37,12 @@ jobs:
 
     - name: Download a single artifact
       uses: actions/download-artifact@v2
+      if: ${{ inputs.artifact_name }}
       with:
         name: ${{ inputs.artifact_name }}
 
     - name: Unzip artifact
+      if: ${{ inputs.artifact_name }}
       run: tar -xvf artifact.tar
 
     - name: Get current date
