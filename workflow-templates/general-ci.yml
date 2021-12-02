@@ -48,6 +48,7 @@ jobs:
     uses: signcl/.github/.github/workflows/build-image.yml@master
     with:
       # TODO: update slugs according to the project
+      # Remove `artifact_name` to skip uploading artifacts
       artifact_name: build-artifact
       ghcr_slug: ghcr.io/signcl/openbayes-console
       uhub_slug: uhub.service.ucloud.cn/openbayes/openbayes-console

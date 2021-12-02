@@ -3,12 +3,14 @@ name: Build Image
 on:
   workflow_call:
     secrets:
-      UCLOUD_HUB:
-        required: true
       UCLOUD_USER:
-        required: true
+        required: false
       UCLOUD_PASS:
-        required: true
+        required: false
+      ACR_USER:
+        required: false
+      ACR_PASS:
+        required: false
     inputs:
       artifact_name:
         description: 'Artifact to download and unpack before building image'
@@ -18,7 +20,10 @@ on:
         required: true
         type: string
       uhub_slug:
-        required: true
+        required: false
+        type: string
+      acr_slug:
+        required: false
         type: string
     outputs:
       version:
@@ -68,18 +73,27 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Login to UCloud UHub
-      if: github.event_name != 'pull_request'
+      if: ${{ github.event_name != 'pull_request' && inputs.uhub_slug }}
       uses: docker/login-action@v1
       with:
-        registry: ${{ secrets.UCLOUD_HUB }}
+        registry: uhub.service.ucloud.cn
         username: ${{ secrets.UCLOUD_USER }}
         password: ${{ secrets.UCLOUD_PASS }}
+
+    - name: Login to Aliyun Container Registry
+      if: ${{ github.event_name != 'pull_request' && inputs.acr_slug }}
+      uses: docker/login-action@v1
+      with:
+        registry: registry.cn-beijing.aliyuncs.com
+        username: ${{ secrets.ACR_USER }}
+        password: ${{ secrets.ACR_PASS }}
 
     - name: Docker meta
       id: meta
       uses: docker/metadata-action@v3
       with:
         images: |
+          ${{ inputs.acr_slug }}
           ${{ inputs.uhub_slug }}
           ${{ inputs.ghcr_slug }}
         tags: |
@@ -103,7 +117,6 @@ jobs:
     - name: Check manifest
       if: github.event_name != 'pull_request'
       run: |
-        docker buildx imagetools inspect ${{ inputs.uhub_slug }}:${{ steps.meta.outputs.version }}
         docker buildx imagetools inspect ${{ inputs.ghcr_slug }}:${{ steps.meta.outputs.version }}
 
     # May slow down workflow process. Disabled by default
