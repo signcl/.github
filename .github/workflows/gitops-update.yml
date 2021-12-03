@@ -18,6 +18,9 @@ on:
       commitMessage:
         required: true
         type: string
+      repository:
+        required: false
+        type: string
       headRef:
         required: false
         type: string
@@ -34,6 +37,7 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
+        repository: ${{ inputs.repository }}
         ref: ${{ inputs.headRef }}
         token: ${{ secrets.PAT_TOKEN }}
     - name: get image tag
