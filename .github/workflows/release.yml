@@ -21,14 +21,8 @@ jobs:
   release:
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
-    steps:
-    - name: Prepare release
-      env:
-        CURRENT_TAG: ${{ inputs.tag }}
-      run: |
-        docker run -v "$PWD":/workdir quay.io/git-chglog/git-chglog $CURRENT_TAG > ${{ inputs.changelog_filename }}
-        cat ${{ inputs.changelog_filename }}
     
+    steps:
     - name: Download a single artifact
       uses: actions/download-artifact@v2
       if: ${{ inputs.artifact_name }}
@@ -38,6 +32,13 @@ jobs:
     - name: Unzip artifact
       if: ${{ inputs.artifact_name }}
       run: tar -xvf artifact.tar
+    
+    - name: Prepare release
+      env:
+        CURRENT_TAG: ${{ inputs.tag }}
+      run: |
+        docker run -v "$PWD":/workdir quay.io/git-chglog/git-chglog $CURRENT_TAG > ${{ inputs.changelog_filename }}
+        cat ${{ inputs.changelog_filename }}
     
     - name: Release
       uses: softprops/action-gh-release@v0.1.12
