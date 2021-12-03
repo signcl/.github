@@ -1,4 +1,4 @@
-name: Build Image
+name: GitOps Repository Dispatch
 
 on:
   workflow_call:
@@ -17,10 +17,10 @@ on:
         type: string
 
 jobs:
-  rancher-dispatch:
+  gitops-dispatch:
     runs-on: ubuntu-latest
     steps:
-    - name: Rancher Repository Dispatch
+    - name: GitOps Repository Dispatch
       if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v')
       uses: peter-evans/repository-dispatch@v1
       with:
