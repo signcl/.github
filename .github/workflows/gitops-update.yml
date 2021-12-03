@@ -1,0 +1,50 @@
+name: GitOps Update Yaml
+
+on:
+  workflow_call:
+    secrets:
+      PAT_TOKEN:
+        required: true
+    inputs:
+      yamlFile:
+        required: true
+        type: string
+      propertyPath:
+        required: true
+        type: string
+      value:
+        required: true
+        type: string
+      commitMessage:
+        required: true
+        type: string
+      branch:
+        required: false
+        type: string
+
+
+
+jobs:
+  gitops-update-yaml:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.PAT_TOKEN }}
+    - name: get image tag
+      id: getImageTag
+      uses: mikefarah/yq@master
+      with:
+        cmd: yq eval '.${{ inputs.propertyPath }}' ${{ inputs.yamlFile }}
+    - name: update values.yaml
+      run: |
+        echo ${{ steps.getImageTag.outputs.result }}
+        sed -i 's/${{ steps.getImageTag.outputs.result }} ## ${{ inputs.propertyPath }}/${{ inputs.value }} ## ${{ inputs.propertyPath }}/g' ${{ inputs.yamlFile }}
+    - uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: ${{ inputs.commitMessage }}
+        commit_user_name: openbayes-bot
+        commit_user_email: 94845780+openbayes-bot@users.noreply.github.com
+        commit_author: openbayes-bot <94845780+openbayes-bot@users.noreply.github.com>
+        branch: ${{ inputs.branch }}
