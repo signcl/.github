@@ -16,12 +16,18 @@ on:
       bin_filename:
         required: true
         type: string
+    outputs:
+      tag:
+        value: ${{ jobs.release.outputs.tag }}
 
 jobs:
   release:
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     
+    outputs:
+      tag: ${{ inputs.tag }}
+
     steps:
     - uses: actions/checkout@v2
       with:
