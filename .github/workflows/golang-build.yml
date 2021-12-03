@@ -1,0 +1,52 @@
+name: Golang
+
+on:
+  workflow_call:
+    inputs:
+      project:
+        required: true
+        type: string
+      bin_name:
+        required: true
+        type: string
+      artifact_name:
+        description: 'Artifact to download and unpack before building image'
+        required: false
+        type: string
+
+jobs:
+  golang-build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Go 1.x
+      uses: actions/setup-go@v2
+      with:
+        go-version: ^1.14
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2
+
+    - name: Get dependencies
+      run: |
+        if [ ! -d /go/src/github.com/signcl/${{ inputs.project }}/vendor ]; then
+            go mod download
+            go mod vendor
+        fi
+        
+    - name: Test
+      run: |
+        go build -v
+        go test -v -p 6 -race ./...
+
+    - name: Compile
+      id: compile
+      run: CGO_ENABLED=1 GOOS=linux go build -o ${{ inputs.bin_name }}
+
+    - name: Zip artifacts
+      run: tar -cvf artifact.tar ${{ inputs.bin_name }}
+
+    - name: Archive production artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ inputs.artifact_name }}
+        path: artifact.tar
