@@ -52,6 +52,7 @@ jobs:
       run: |
         echo ${{ steps.getImageTag.outputs.result }}
         sed -i 's/${{ steps.getImageTag.outputs.result }} ## ${{ inputs.propertyPath }}/${{ inputs.value }} ## ${{ inputs.propertyPath }}/g' ${{ inputs.yamlFile }}
+        sed -i 's/"${{ steps.getImageTag.outputs.result }}" ## ${{ inputs.propertyPath }}/"${{ inputs.value }}" ## ${{ inputs.propertyPath }}/g' ${{ inputs.yamlFile }}
     - name: update questions.yaml
       if: inputs.questionsFile != ''
       run: |
