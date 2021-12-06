@@ -9,6 +9,9 @@ on:
       yamlFile:
         required: true
         type: string
+      questionsFile:
+        required: false
+        type: string
       propertyPath:
         required: true
         type: string
@@ -49,6 +52,12 @@ jobs:
       run: |
         echo ${{ steps.getImageTag.outputs.result }}
         sed -i 's/${{ steps.getImageTag.outputs.result }} ## ${{ inputs.propertyPath }}/${{ inputs.value }} ## ${{ inputs.propertyPath }}/g' ${{ inputs.yamlFile }}
+    - name: update questions.yaml
+      if: inputs.questionsFile != ''
+      run: |
+        echo ${{ steps.getImageTag.outputs.result }}
+        sed -i 's/${{ steps.getImageTag.outputs.result }} ## ${{ inputs.propertyPath }}/${{ inputs.value }} ## ${{ inputs.propertyPath }}/g' ${{ inputs.questionsFile }}
+        sed -i 's/"${{ steps.getImageTag.outputs.result }}" ## ${{ inputs.propertyPath }}/"${{ inputs.value }}" ## ${{ inputs.propertyPath }}/g' ${{ inputs.questionsFile }}
     - uses: stefanzweifel/git-auto-commit-action@v4
       with:
         commit_message: ${{ inputs.commitMessage }}
