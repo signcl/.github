@@ -141,7 +141,7 @@ jobs:
       uses: docker/bake-action@v1
       with:
         files: |
-          ./docker-bake.hcl
+          ${{ inputs.working_directory }}/docker-bake.hcl
           ${{ steps.meta.outputs.bake-file }}
         targets: build-all
         push: ${{ github.event_name != 'pull_request' }}
