@@ -85,7 +85,7 @@ jobs:
       if: ${{ inputs.artifact_name }}
       run: tar -xvf artifact.tar
 
-    - name: Get current date
+    - name: Set current timestamp for image tag
       id: date
       run: echo "::set-output name=date::$(date +'%y%m%d%H%M%S')"
 
@@ -139,11 +139,11 @@ jobs:
           ${{ inputs.ghcr_slug }}
           ${{ inputs.hub_slug }}
         tags: |
-          type=semver,pattern=v{{version}}
-          type=semver,pattern=v{{major}}.{{minor}}
-          type=semver,pattern=v{{major}}
-          type=sha,prefix=${{ steps.date.outputs.date }}-
-          type=raw,enable=${{ inputs.use_custom_tag }},prefix=,suffix=,value=${{ inputs.custom_tag }}
+          type=semver,priority=100,pattern=v{{version}}
+          type=semver,priority=100,pattern=v{{major}}.{{minor}}
+          type=semver,priority=100,pattern=v{{major}}
+          type=sha,priority=1000,prefix=${{ steps.date.outputs.date }}-
+          type=raw,priority=100,enable=${{ inputs.use_custom_tag }},prefix=,suffix=,value=${{ inputs.custom_tag }}
 
     - name: Build and push images
       uses: docker/bake-action@v1
