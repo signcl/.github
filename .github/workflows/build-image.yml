@@ -20,10 +20,6 @@ on:
         description: The folder containing the project to build
         type: string
         default: .
-      use_custom_tag:
-        description: 'Use custom contaienr tag, used by bump-version action to avoid creating additional commits'
-        required: false
-        type: boolean
       custom_tag:
         description: 'Use custom contaienr tag, used by bump-version action to avoid creating additional commits'
         required: false
@@ -87,7 +83,10 @@ jobs:
 
     - name: Set current timestamp for image tag
       id: date
-      run: echo "::set-output name=date::$(date +'%y%m%d%H%M%S')"
+      run: |
+        timestamp=$(date +'%y%m%d%H%M%S')
+        echo $timestamp
+        echo "::set-output name=timestamp::$timestamp"
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v1
@@ -138,12 +137,15 @@ jobs:
           ${{ inputs.uhub_slug }}
           ${{ inputs.ghcr_slug }}
           ${{ inputs.hub_slug }}
+        # Manually define whether a tag should be tagged as `latest`
+        flavor: |
+          latest=${{ inputs.custom_tag && 'true' || 'auto' }}
         tags: |
           type=semver,priority=900,pattern=v{{version}}
           type=semver,priority=900,pattern=v{{major}}.{{minor}}
           type=semver,priority=900,pattern=v{{major}}
-          type=sha,priority=100,prefix=${{ steps.date.outputs.date }}-
-          type=raw,priority=1000,enable=${{ inputs.use_custom_tag }},prefix=,suffix=,value=${{ inputs.custom_tag }}
+          type=sha,priority=100,prefix=${{ steps.date.outputs.timestamp }}-
+          type=raw,priority=1000,enable=${{ inputs.custom_tag || 'false' }},prefix=,suffix=,value=${{ inputs.custom_tag }}
 
     - name: Build and push images
       uses: docker/bake-action@v1
