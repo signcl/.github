@@ -1,4 +1,4 @@
-name: Release
+name: Create GitHub Release
 
 on:
   workflow_call:
@@ -11,41 +11,44 @@ on:
         required: false
         type: string
       changelog_filename:
-        required: true
+        required: false
         type: string
       bin_filename:
-        required: true
+        required: false
         type: string
 
 jobs:
-  release:
+  create-release:
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
-    
+
     steps:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
-    
+        # Set ref to current branch to get the latest changes from previous jobs
+        ref: ${{ github.ref_name }}
+
     - name: Download a single artifact
       uses: actions/download-artifact@v2
       if: ${{ inputs.artifact_name }}
       with:
         name: ${{ inputs.artifact_name }}
-    
+
     - name: Unzip artifact
       if: ${{ inputs.artifact_name }}
       run: tar -xvf artifact.tar
-    
+
     - name: Prepare release
+      if: ${{ inputs.changelog_filename }}
       run: |
         docker run -v "$PWD":/workdir quay.io/git-chglog/git-chglog ${{ inputs.tag }} > ${{ inputs.changelog_filename }}
         cat ${{ inputs.changelog_filename }}
-    
+
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
         body_path: ${{ inputs.changelog_filename }}
         files: ${{ inputs.bin_filename }}
+        generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
