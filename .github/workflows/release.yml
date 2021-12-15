@@ -48,10 +48,10 @@ jobs:
     - name: Prepare release ${{ inputs.tag }}
       if: ${{ inputs.changelog_filename }}
       run: |
-        docker run -v "$PWD/chglog-configs":/workdir \
-          quay.io/git-chglog/git-chglog ${{ inputs.tag }} \
+        docker run -v "$PWD":/workdir quay.io/git-chglog/git-chglog  \
+          --config "/workdir/chglog-configs/.chglog/config.yml" \
           --repository-url https://github.com/${{ github.repository }} \
-          > ${{ inputs.changelog_filename }}
+          ${{ inputs.tag }} > ${{ inputs.changelog_filename }}
         cat ${{ inputs.changelog_filename }}
 
     - name: Release ${{ inputs.tag }}
