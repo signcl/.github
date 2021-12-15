@@ -38,10 +38,20 @@ jobs:
       if: ${{ inputs.artifact_name }}
       run: tar -xvf artifact.tar
 
+    - name: Download chglog configs
+      if: ${{ inputs.changelog_filename }}
+      uses: actions/checkout@v2
+      with:
+        repository: signcl/.github
+        path: chglog-configs
+
     - name: Prepare release ${{ inputs.tag }}
       if: ${{ inputs.changelog_filename }}
       run: |
-        docker run -v "$PWD":/workdir quay.io/git-chglog/git-chglog ${{ inputs.tag }} > ${{ inputs.changelog_filename }}
+        docker run -v "$PWD/chglog-configs":/workdir \
+          quay.io/git-chglog/git-chglog ${{ inputs.tag }} \
+          --repository-url https://github.com/${{ github.repository }} \
+          > ${{ inputs.changelog_filename }}
         cat ${{ inputs.changelog_filename }}
 
     - name: Release ${{ inputs.tag }}
