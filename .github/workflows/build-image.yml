@@ -20,6 +20,14 @@ on:
         description: The folder containing the project to build
         type: string
         default: .
+      use_custom_tag:
+        description: 'Use custom contaienr tag, used by bump-version action to avoid creating additional commits'
+        required: false
+        type: boolean
+      custom_tag:
+        description: 'Use custom contaienr tag, used by bump-version action to avoid creating additional commits'
+        required: false
+        type: string
       artifact_name:
         description: 'Artifact to download and unpack before building image'
         required: false
@@ -135,6 +143,7 @@ jobs:
           type=semver,pattern=v{{major}}.{{minor}}
           type=semver,pattern=v{{major}}
           type=sha,prefix=${{ steps.date.outputs.date }}-
+          type=raw,enable=${{ inputs.use_custom_tag }},prefix=,suffix=,value=${{ inputs.custom_tag }}
 
     - name: Build and push images
       uses: docker/bake-action@v1
