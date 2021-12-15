@@ -6,9 +6,9 @@ on:
       PAT_TOKEN:
         required: true
       GPG_PRIVATE_KEY:
-        required: false
+        required: true
       GPG_PASSPHRASE:
-        required: false
+        required: true
     inputs:
       yamlFile:
         required: true
@@ -83,11 +83,19 @@ jobs:
         git_commit_gpgsign: true
         git_tag_gpgsign: true
 
-    - uses: stefanzweifel/git-auto-commit-action@v4
-      with:
-        commit_message: ${{ inputs.commitMessage }}
-        commit_user_name: openbayes-bot
-        commit_user_email: 94845780+openbayes-bot@users.noreply.github.com
-        commit_author: openbayes-bot <94845780+openbayes-bot@users.noreply.github.com>
-        branch: ${{ inputs.branch }}
-        tagging_message: ${{ inputs.taggingMessage }}
+    - name: Sign commit and push changes
+      run: |
+        git add .
+        git commit -S -m "${{ inputs.commitMessage }}"
+        git tag -s ${{ inputs.taggingMessage }} -m "chore: release ${{ inputs.taggingMessage }}"
+        git push origin ${{ inputs.branch }} --follow-tags --atomic
+
+    # - uses: stefanzweifel/git-auto-commit-action@v4
+    #   with:
+    #     commit_message: ${{ inputs.commitMessage }}
+    #     commit_user_name: openbayes-bot
+    #     commit_user_email: 94845780+openbayes-bot@users.noreply.github.com
+    #     commit_author: openbayes-bot <94845780+openbayes-bot@users.noreply.github.com>
+    #     commit_options: '-S'
+    #     branch: ${{ inputs.branch }}
+    #     tagging_message: ${{ inputs.taggingMessage }}
