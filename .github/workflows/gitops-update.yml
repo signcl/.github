@@ -30,8 +30,9 @@ on:
       branch:
         required: false
         type: string
-
-
+      taggingMessage:
+        required: false
+        type: string
 
 jobs:
   gitops-update-yaml:
@@ -66,3 +67,4 @@ jobs:
         commit_user_email: 94845780+openbayes-bot@users.noreply.github.com
         commit_author: openbayes-bot <94845780+openbayes-bot@users.noreply.github.com>
         branch: ${{ inputs.branch }}
+        tagging_message: ${{ inputs.taggingMessage }}
