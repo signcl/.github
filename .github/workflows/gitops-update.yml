@@ -41,6 +41,7 @@ on:
 jobs:
   gitops-update-yaml:
     runs-on: ubuntu-latest
+
     steps:
     - uses: actions/checkout@v2
       with:
@@ -48,22 +49,26 @@ jobs:
         repository: ${{ inputs.repository || github.repository }}
         ref: ${{ inputs.headRef }}
         token: ${{ secrets.PAT_TOKEN }}
+
     - name: get image tag
       id: getImageTag
       uses: mikefarah/yq@master
       with:
         cmd: yq eval '.${{ inputs.propertyPath }}' ${{ inputs.yamlFile }}
+
     - name: update values.yaml
       run: |
         echo ${{ steps.getImageTag.outputs.result }}
         sed -i 's/${{ steps.getImageTag.outputs.result }} ## ${{ inputs.propertyPath }}/${{ inputs.value }} ## ${{ inputs.propertyPath }}/g' ${{ inputs.yamlFile }}
         sed -i 's/"${{ steps.getImageTag.outputs.result }}" ## ${{ inputs.propertyPath }}/"${{ inputs.value }}" ## ${{ inputs.propertyPath }}/g' ${{ inputs.yamlFile }}
+
     - name: update questions.yaml
       if: inputs.questionsFile != ''
       run: |
         echo ${{ steps.getImageTag.outputs.result }}
         sed -i 's/${{ steps.getImageTag.outputs.result }} ## ${{ inputs.propertyPath }}/${{ inputs.value }} ## ${{ inputs.propertyPath }}/g' ${{ inputs.questionsFile }}
         sed -i 's/"${{ steps.getImageTag.outputs.result }}" ## ${{ inputs.propertyPath }}/"${{ inputs.value }}" ## ${{ inputs.propertyPath }}/g' ${{ inputs.questionsFile }}
+
     - uses: stefanzweifel/git-auto-commit-action@v4
       with:
         commit_message: ${{ inputs.commitMessage }}
