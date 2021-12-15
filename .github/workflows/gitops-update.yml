@@ -5,6 +5,10 @@ on:
     secrets:
       PAT_TOKEN:
         required: true
+      GPG_PRIVATE_KEY:
+        required: false
+      GPG_PASSPHRASE:
+        required: false
     inputs:
       yamlFile:
         required: true
@@ -68,6 +72,16 @@ jobs:
         echo ${{ steps.getImageTag.outputs.result }}
         sed -i 's/${{ steps.getImageTag.outputs.result }} ## ${{ inputs.propertyPath }}/${{ inputs.value }} ## ${{ inputs.propertyPath }}/g' ${{ inputs.questionsFile }}
         sed -i 's/"${{ steps.getImageTag.outputs.result }}" ## ${{ inputs.propertyPath }}/"${{ inputs.value }}" ## ${{ inputs.propertyPath }}/g' ${{ inputs.questionsFile }}
+
+    - name: Import GPG key
+      id: import_gpg
+      uses: crazy-max/ghaction-import-gpg@v4
+      with:
+        gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+        passphrase: ${{ secrets.GPG_PASSPHRASE }}
+        git_user_signingkey: true
+        git_commit_gpgsign: true
+        git_tag_gpgsign: true
 
     - uses: stefanzweifel/git-auto-commit-action@v4
       with:
