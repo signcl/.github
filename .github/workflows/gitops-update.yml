@@ -45,7 +45,7 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
-        repository: ${{ inputs.repository }}
+        repository: ${{ inputs.repository || github.repository }}
         ref: ${{ inputs.headRef }}
         token: ${{ secrets.PAT_TOKEN }}
     - name: get image tag
