@@ -25,11 +25,15 @@ on:
         required: false
         type: string
       headRef:
+        description: 'Which ref to checkout'
         required: false
         type: string
+        default: 'master'
       branch:
+        description: 'Which branch to update for stefanzweifel/git-auto-commit-action'
         required: false
         type: string
+        default: 'master'
       taggingMessage:
         required: false
         type: string
