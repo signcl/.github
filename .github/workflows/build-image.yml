@@ -129,10 +129,6 @@ jobs:
         username: ${{ secrets.UCLOUD_USER }}
         password: ${{ secrets.UCLOUD_PASS }}
 
-    - name: Inspect custom container tag
-      if: ${{ inputs.custom_tag }}
-      run: echo "::set-output name=custom_tag::${{{ inputs.custom_tag }}}"
-
     - name: Docker meta
       id: meta
       uses: docker/metadata-action@v3
