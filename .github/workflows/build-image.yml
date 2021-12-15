@@ -145,7 +145,7 @@ jobs:
           type=semver,priority=900,pattern=v{{major}}.{{minor}}
           type=semver,priority=900,pattern=v{{major}}
           type=sha,priority=100,prefix=${{ steps.date.outputs.timestamp }}-
-          type=raw,priority=1000,enable=${{ inputs.custom_tag || 'false' }},prefix=,suffix=,value=${{ inputs.custom_tag }}
+          type=raw,priority=1000,enable=${{ inputs.custom_tag && 'true' || 'false' }},prefix=,suffix=,value=${{ inputs.custom_tag }}
 
     - name: Build and push images
       uses: docker/bake-action@v1
