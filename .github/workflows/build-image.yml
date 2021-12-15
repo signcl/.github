@@ -129,6 +129,10 @@ jobs:
         username: ${{ secrets.UCLOUD_USER }}
         password: ${{ secrets.UCLOUD_PASS }}
 
+    - name: Inspect custom container tag
+      if: ${{ inputs.custom_tag }}
+      run: echo "::set-output name=custom_tag::${{{ inputs.custom_tag }}}"
+
     - name: Docker meta
       id: meta
       uses: docker/metadata-action@v3
@@ -139,11 +143,11 @@ jobs:
           ${{ inputs.ghcr_slug }}
           ${{ inputs.hub_slug }}
         tags: |
-          type=semver,priority=100,pattern=v{{version}}
-          type=semver,priority=100,pattern=v{{major}}.{{minor}}
-          type=semver,priority=100,pattern=v{{major}}
-          type=sha,priority=1000,prefix=${{ steps.date.outputs.date }}-
-          type=raw,priority=100,enable=${{ inputs.use_custom_tag }},prefix=,suffix=,value=${{ inputs.custom_tag }}
+          type=semver,priority=900,pattern=v{{version}}
+          type=semver,priority=900,pattern=v{{major}}.{{minor}}
+          type=semver,priority=900,pattern=v{{major}}
+          type=sha,priority=100,prefix=${{ steps.date.outputs.date }}-
+          type=raw,priority=1000,enable=${{ inputs.use_custom_tag }},prefix=,suffix=,value=${{ inputs.custom_tag }}
 
     - name: Build and push images
       uses: docker/bake-action@v1
