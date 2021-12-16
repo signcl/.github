@@ -1,13 +1,9 @@
-name: GitOps Release
+name: GitOps Update Yaml
 
 on:
   workflow_call:
     secrets:
       PAT_TOKEN:
-        required: true
-      GPG_PRIVATE_KEY:
-        required: true
-      GPG_PASSPHRASE:
         required: true
     inputs:
       yamlFile:
@@ -29,15 +25,11 @@ on:
         required: false
         type: string
       headRef:
-        description: 'Which ref to checkout'
         required: false
         type: string
-        default: 'master'
       branch:
-        description: 'Which branch to update for stefanzweifel/git-auto-commit-action'
         required: false
         type: string
-        default: 'master'
       taggingMessage:
         required: false
         type: string
@@ -45,47 +37,39 @@ on:
 jobs:
   gitops-update-yaml:
     runs-on: ubuntu-latest
-
+    
     steps:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
-        repository: ${{ inputs.repository || github.repository }}
+        repository: ${{ inputs.repository }}
         ref: ${{ inputs.headRef }}
         token: ${{ secrets.PAT_TOKEN }}
-
+    
     - name: Get image tag
       id: getImageTag
       uses: mikefarah/yq@master
       with:
         cmd: yq eval '.${{ inputs.propertyPath }}' ${{ inputs.yamlFile }}
-
+    
     - name: Update values.yaml
       run: |
         echo ${{ steps.getImageTag.outputs.result }}
         sed -i 's/${{ steps.getImageTag.outputs.result }} ## ${{ inputs.propertyPath }}/${{ inputs.value }} ## ${{ inputs.propertyPath }}/g' ${{ inputs.yamlFile }}
         sed -i 's/"${{ steps.getImageTag.outputs.result }}" ## ${{ inputs.propertyPath }}/"${{ inputs.value }}" ## ${{ inputs.propertyPath }}/g' ${{ inputs.yamlFile }}
-
+    
     - name: Update questions.yaml
       if: inputs.questionsFile != ''
       run: |
         echo ${{ steps.getImageTag.outputs.result }}
         sed -i 's/${{ steps.getImageTag.outputs.result }} ## ${{ inputs.propertyPath }}/${{ inputs.value }} ## ${{ inputs.propertyPath }}/g' ${{ inputs.questionsFile }}
         sed -i 's/"${{ steps.getImageTag.outputs.result }}" ## ${{ inputs.propertyPath }}/"${{ inputs.value }}" ## ${{ inputs.propertyPath }}/g' ${{ inputs.questionsFile }}
-
-    - name: Import GPG key
-      id: import_gpg
-      uses: crazy-max/ghaction-import-gpg@v4
+    
+    - uses: stefanzweifel/git-auto-commit-action@v4
       with:
-        gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
-        passphrase: ${{ secrets.GPG_PASSPHRASE }}
-        git_user_signingkey: true
-        git_commit_gpgsign: true
-        git_tag_gpgsign: true
-
-    - name: Sign commit and push changes for ${{ inputs.taggingMessage }}
-      run: |
-        git add .
-        git commit -S -m "${{ inputs.commitMessage }}"
-        git tag -s ${{ inputs.taggingMessage }} -m "chore: release ${{ inputs.taggingMessage }}"
-        git push origin ${{ inputs.branch }} --follow-tags --atomic
+        commit_message: ${{ inputs.commitMessage }}
+        commit_user_name: openbayes-bot
+        commit_user_email: 94845780+openbayes-bot@users.noreply.github.com
+        commit_author: openbayes-bot <94845780+openbayes-bot@users.noreply.github.com>
+        branch: ${{ inputs.branch }}
+        tagging_message: ${{ inputs.taggingMessage }}
