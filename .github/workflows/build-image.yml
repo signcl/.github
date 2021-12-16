@@ -70,7 +70,7 @@ jobs:
 
     outputs:
       image_tag: ${{ steps.meta.outputs.version }}
-      git_tag: v${{ steps.meta.outputs.version }}
+      git_tag: ${{ steps.getGitTag.outputs.git_tag }}
 
     steps:
     - uses: actions/checkout@v2
@@ -151,6 +151,19 @@ jobs:
         tags: |
           type=semver,pattern={{version}},value=${{ inputs.custom_tag }}
           type=sha,enable=${{ inputs.custom_tag && 'false' || 'true' }},prefix=${{ steps.date.outputs.timestamp }}-
+
+    - name: Get git tag
+      id: getGitTag
+      run: |
+        TAG="${{ inputs.custom_tag }}"
+        
+        if [[ "${{ inputs.custom_tag }}" == "" ]]; then
+          echo "meta.version=${{ steps.meta.outputs.version }}"
+          TAG="v${{ steps.meta.outputs.version }}"
+        fi
+        
+        echo "::set-output name=git_tag::$TAG"
+        echo "::notice title=GIT Tag::$TAG"
 
     - name: Build and push images
       uses: docker/bake-action@v1
