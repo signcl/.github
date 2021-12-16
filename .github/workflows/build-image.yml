@@ -53,9 +53,12 @@ on:
         default: 'uhub.service.ucloud.cn'
         type: string
     outputs:
-      version:
+      image_tag:
         description: "Image tag from docker/metadata-action"
-        value: ${{ jobs.build-image.outputs.version }}
+        value: ${{ jobs.build-image.outputs.image_tag }}
+      git_tag:
+        description: "Git tag with `v` prefix"
+        value: ${{ jobs.build-image.outputs.git_tag }}
 
 jobs:
   build-image:
@@ -66,7 +69,8 @@ jobs:
         working-directory: ${{ inputs.working_directory }}
 
     outputs:
-      version: ${{ steps.meta.outputs.version }}
+      image_tag: ${{ steps.meta.outputs.version }}
+      git_tag: v${{ steps.meta.outputs.version }}
 
     steps:
     - uses: actions/checkout@v2
