@@ -142,10 +142,11 @@ jobs:
         # Uncomment the following line when UHub fixes its shit
         # flavor: |
         #   latest=${{ inputs.custom_tag && 'true' || 'auto' }}
+        flavor: |
+          latest=false
         tags: |
-          type=semver,pattern={{version}}
+          type=semver,pattern={{version}},value=${{ inputs.custom_tag }}
           type=sha,enable=${{ inputs.custom_tag && 'false' || 'true' }},prefix=${{ steps.date.outputs.timestamp }}-
-          type=raw,enable=${{ inputs.custom_tag && 'true' || 'false' }},prefix=,suffix=,value=${{ inputs.custom_tag }}
 
     - name: Build and push images
       uses: docker/bake-action@v1
