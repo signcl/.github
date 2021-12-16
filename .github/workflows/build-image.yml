@@ -144,8 +144,6 @@ jobs:
         #   latest=${{ inputs.custom_tag && 'true' || 'auto' }}
         tags: |
           type=semver,pattern={{version}}
-          type=semver,pattern={{major}}.{{minor}}
-          type=semver,pattern={{major}}
           type=sha,enable=${{ inputs.custom_tag && 'false' || 'true' }},prefix=${{ steps.date.outputs.timestamp }}-
           type=raw,enable=${{ inputs.custom_tag && 'true' || 'false' }},prefix=,suffix=,value=${{ inputs.custom_tag }}
 
