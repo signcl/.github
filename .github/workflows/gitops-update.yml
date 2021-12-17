@@ -33,10 +33,20 @@ on:
       taggingMessage:
         required: false
         type: string
+      deployment_env:
+        required: false
+        default: 'prod'
+        type: string
+      deployment_url:
+        required: false
+        type: string
 
 jobs:
   gitops-update-yaml:
     runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.deployment_env }}
+      url: https://github.com
 
     steps:
     - uses: actions/checkout@v2

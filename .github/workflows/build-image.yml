@@ -28,6 +28,13 @@ on:
         description: 'Artifact to download and unpack before building image'
         required: false
         type: string
+      deployment_env:
+        required: false
+        default: 'dev'
+        type: string
+      deployment_url:
+        required: false
+        type: string
       ghcr_slug:
         description: 'Default GitHub Container Registry'
         required: true
@@ -63,6 +70,13 @@ on:
 jobs:
   build-image:
     runs-on: self-hosted
+    environment:
+      name: ${{ inputs.deployment_env }}
+      url: ${{ inputs.deployment_url }}
+    concurrency:
+      # NOTE: This ensure no more than one docker build is running at the same time
+      group: ${{ inputs.custom_tag || inputs.deployment_env }}
+      cancel-in-progress: true
 
     defaults:
       run:
