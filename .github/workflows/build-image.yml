@@ -167,6 +167,7 @@ jobs:
 
     - name: Build and push images
       uses: docker/bake-action@v1
+      environment: dev
       with:
         files: |
           ${{ inputs.working_directory }}/docker-bake.hcl
