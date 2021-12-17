@@ -37,7 +37,7 @@ on:
 jobs:
   gitops-update-yaml:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v2
       with:
@@ -45,27 +45,28 @@ jobs:
         repository: ${{ inputs.repository }}
         ref: ${{ inputs.headRef }}
         token: ${{ secrets.PAT_TOKEN }}
-    
+
     - name: Get image tag
       id: getImageTag
       uses: mikefarah/yq@master
       with:
         cmd: yq eval '.${{ inputs.propertyPath }}' ${{ inputs.yamlFile }}
-    
+
     - name: Update values.yaml
       run: |
         echo ${{ steps.getImageTag.outputs.result }}
         sed -i 's/${{ steps.getImageTag.outputs.result }} ## ${{ inputs.propertyPath }}/${{ inputs.value }} ## ${{ inputs.propertyPath }}/g' ${{ inputs.yamlFile }}
         sed -i 's/"${{ steps.getImageTag.outputs.result }}" ## ${{ inputs.propertyPath }}/"${{ inputs.value }}" ## ${{ inputs.propertyPath }}/g' ${{ inputs.yamlFile }}
-    
+
     - name: Update questions.yaml
       if: inputs.questionsFile != ''
       run: |
         echo ${{ steps.getImageTag.outputs.result }}
         sed -i 's/${{ steps.getImageTag.outputs.result }} ## ${{ inputs.propertyPath }}/${{ inputs.value }} ## ${{ inputs.propertyPath }}/g' ${{ inputs.questionsFile }}
         sed -i 's/"${{ steps.getImageTag.outputs.result }}" ## ${{ inputs.propertyPath }}/"${{ inputs.value }}" ## ${{ inputs.propertyPath }}/g' ${{ inputs.questionsFile }}
-    
+
     - uses: stefanzweifel/git-auto-commit-action@v4
+      environment: prod
       with:
         commit_message: ${{ inputs.commitMessage }}
         commit_user_name: openbayes-bot
