@@ -74,7 +74,8 @@ jobs:
       name: ${{ inputs.deployment_env }}
       url: ${{ inputs.deployment_url }}
     concurrency:
-      # NOTE: This ensure no more than one docker build is running at the same time
+      # NOTE: This ensure no more than one docker build is running for the same
+      # tag at the same time
       group: ${{ inputs.custom_tag || inputs.deployment_env }}
       cancel-in-progress: true
 
