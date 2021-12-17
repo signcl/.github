@@ -156,18 +156,17 @@ jobs:
       id: getGitTag
       run: |
         TAG="${{ inputs.custom_tag }}"
-        
+
         if [[ "${{ inputs.custom_tag }}" == "" ]]; then
           echo "meta.version=${{ steps.meta.outputs.version }}"
           TAG="v${{ steps.meta.outputs.version }}"
         fi
-        
+
         echo "::set-output name=git_tag::$TAG"
         echo "::notice title=GIT Tag::$TAG"
 
     - name: Build and push images
       uses: docker/bake-action@v1
-      environment: dev
       with:
         files: |
           ${{ inputs.working_directory }}/docker-bake.hcl

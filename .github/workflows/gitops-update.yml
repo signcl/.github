@@ -66,7 +66,6 @@ jobs:
         sed -i 's/"${{ steps.getImageTag.outputs.result }}" ## ${{ inputs.propertyPath }}/"${{ inputs.value }}" ## ${{ inputs.propertyPath }}/g' ${{ inputs.questionsFile }}
 
     - uses: stefanzweifel/git-auto-commit-action@v4
-      environment: prod
       with:
         commit_message: ${{ inputs.commitMessage }}
         commit_user_name: openbayes-bot
