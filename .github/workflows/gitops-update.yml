@@ -12,6 +12,9 @@ on:
       questionsFile:
         required: false
         type: string
+      projectVersionFile:
+        required: false
+        type: string
       propertyPath:
         required: true
         type: string
@@ -42,6 +45,7 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
+        # Optional. The caller repository will be checked out when empty
         repository: ${{ inputs.repository }}
         ref: ${{ inputs.headRef }}
         token: ${{ secrets.PAT_TOKEN }}
@@ -52,18 +56,24 @@ jobs:
       with:
         cmd: yq eval '.${{ inputs.propertyPath }}' ${{ inputs.yamlFile }}
 
-    - name: Update values.yaml
+    - name: Update values.yaml (${{ steps.getImageTag.outputs.result }} → ${{ inputs.value }})
       run: |
         echo ${{ steps.getImageTag.outputs.result }}
         sed -i 's/${{ steps.getImageTag.outputs.result }} ## ${{ inputs.propertyPath }}/${{ inputs.value }} ## ${{ inputs.propertyPath }}/g' ${{ inputs.yamlFile }}
         sed -i 's/"${{ steps.getImageTag.outputs.result }}" ## ${{ inputs.propertyPath }}/"${{ inputs.value }}" ## ${{ inputs.propertyPath }}/g' ${{ inputs.yamlFile }}
 
-    - name: Update questions.yaml
+    - name: Update questions.yaml (${{ steps.getImageTag.outputs.result }} → ${{ inputs.value }})
       if: inputs.questionsFile != ''
       run: |
         echo ${{ steps.getImageTag.outputs.result }}
         sed -i 's/${{ steps.getImageTag.outputs.result }} ## ${{ inputs.propertyPath }}/${{ inputs.value }} ## ${{ inputs.propertyPath }}/g' ${{ inputs.questionsFile }}
         sed -i 's/"${{ steps.getImageTag.outputs.result }}" ## ${{ inputs.propertyPath }}/"${{ inputs.value }}" ## ${{ inputs.propertyPath }}/g' ${{ inputs.questionsFile }}
+
+    - name: Update Node.js package.json (${{ steps.getImageTag.outputs.result }} → ${{ inputs.value }})
+      if: inputs.projectVersionFile == 'package.json'
+      run: |
+        echo "${{ steps.getImageTag.outputs.result }} -> ${{ inputs.value }}"
+        sed -i -r 's/"version": "(.*)"/"version": "${{ inputs.value }}"/g' package.json
 
     - uses: stefanzweifel/git-auto-commit-action@v4
       with:
