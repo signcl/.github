@@ -5,6 +5,10 @@ on:
     secrets:
       PAT_TOKEN:
         required: true
+      GPG_KEY:
+        required: false
+      GPG_PASSPHRASE:
+        required: false
     inputs:
       yamlFile:
         required: true
@@ -36,6 +40,10 @@ on:
       taggingMessage:
         required: false
         type: string
+      gpgSign:
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   gitops-update-yaml:
@@ -75,11 +83,27 @@ jobs:
         echo "${{ steps.getImageTag.outputs.result }} -> ${{ inputs.value }}"
         sed -i -r 's/"version": "(.*)"/"version": "${{ inputs.value }}"/g' package.json
 
-    - uses: stefanzweifel/git-auto-commit-action@v4
+    - name: Import GPG key
+      id: import_gpg
+      # GitHub Actions sucks at providing a way to determine if a secret exists
+      # I need an additional option for it
+      if: inputs.gpgSign
+      # if: ${{ secrets.GPG_PASSPHRASE }}
+      uses: crazy-max/ghaction-import-gpg@v4
+      with:
+        gpg_private_key: ${{ secrets.GPG_KEY }}
+        passphrase: ${{ secrets.GPG_PASSPHRASE }}
+        git_user_signingkey: true
+        git_commit_gpgsign: true
+        git_tag_gpgsign: true
+
+    - uses: signcl/git-auto-commit-action@master
       with:
         commit_message: ${{ inputs.commitMessage }}
+        commit_options: ${{ inputs.gpgSign && '-S' || '' }}
+        tagging_options: ${{ inputs.gpgSign && '-s' || '' }}
         commit_user_name: openbayes-bot
-        commit_user_email: 94845780+openbayes-bot@users.noreply.github.com
-        commit_author: openbayes-bot <94845780+openbayes-bot@users.noreply.github.com>
+        commit_user_email: devops@openbayes.com
+        commit_author: openbayes-bot <devops@openbayes.com>
         branch: ${{ inputs.branch }}
         tagging_message: ${{ inputs.taggingMessage }}
