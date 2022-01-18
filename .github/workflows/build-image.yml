@@ -75,8 +75,10 @@ jobs:
       url: ${{ inputs.deployment_url }}
     concurrency:
       # NOTE: This ensure no more than one docker build is running for the same
-      # tag at the same time
-      group: ${{ inputs.custom_tag }}
+      # tag at the same time.
+      # `github.head_ref` is only defined on `pull_request` events. You need to
+      # provide a fallback to avoid a syntax error.
+      group: ${{ inputs.custom_tag || inputs.deployment_env }}-${{ github.head_ref || github.run_id }}
       cancel-in-progress: true
 
     defaults:
