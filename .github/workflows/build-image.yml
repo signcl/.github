@@ -76,7 +76,7 @@ jobs:
     concurrency:
       # NOTE: This ensure no more than one docker build is running for the same
       # tag at the same time
-      group: ${{ inputs.custom_tag || inputs.deployment_env }}
+      group: ${{ inputs.custom_tag }}
       cancel-in-progress: true
 
     defaults:
