@@ -92,6 +92,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: Show current concurrency condition
+      run: echo "::notice title=Concurrency Condition::${{ inputs.custom_tag || inputs.deployment_env }}-${{ github.head_ref || github.run_id }}"
+
     - name: Download a single artifact
       uses: actions/download-artifact@v2
       if: ${{ inputs.artifact_name }}
@@ -180,7 +183,7 @@ jobs:
         fi
 
         echo "::set-output name=git_tag::$TAG"
-        echo "::notice title=GIT Tag::$TAG"
+        echo "::notice title=Git Tag::$TAG"
 
     - name: Build and push images
       uses: docker/bake-action@v1
