@@ -1,6 +1,6 @@
 # signcl/.github
 
-Public assets for OpenBayes (aka. Signcl)
+Public GitHub assets for OpenBayes (aka. Signcl)
 
 ## Directories
 
