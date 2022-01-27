@@ -35,6 +35,10 @@ on:
       deployment_url:
         required: false
         type: string
+      docker_bake_targets:
+        required: false
+        type: string
+        default: 'build-all'
       ghcr_slug:
         description: 'Default GitHub Container Registry'
         required: true
@@ -191,12 +195,12 @@ jobs:
         files: |
           ${{ inputs.working_directory }}/docker-bake.hcl
           ${{ steps.meta.outputs.bake-file }}
-        targets: build-all
+        targets: ${{ inputs.docker_bake_targets }}
         push: ${{ github.event_name != 'pull_request' }}
         set: |
           *.cache-from=type=registry,ref=${{ inputs.ghcr_slug }}:buildcache
           *.cache-to=type=registry,ref=${{ inputs.ghcr_slug }}:buildcache,mode=max
-          *.context=${{ inputs.working_directory || '.' }}
+          *.context=${{ inputs.working_directory }}
 
     - name: Check manifest
       if: github.event_name != 'pull_request'
