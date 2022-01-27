@@ -196,6 +196,7 @@ jobs:
         set: |
           *.cache-from=type=registry,ref=${{ inputs.ghcr_slug }}:buildcache
           *.cache-to=type=registry,ref=${{ inputs.ghcr_slug }}:buildcache,mode=max
+          *.context=${{ inputs.working_directory || '.' }}
 
     - name: Check manifest
       if: github.event_name != 'pull_request'
