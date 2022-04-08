@@ -100,7 +100,7 @@ jobs:
       run: echo "::notice title=Concurrency Condition::${{ inputs.custom_tag || inputs.deployment_env }}-${{ github.head_ref || github.run_id }}"
 
     - name: Download a single artifact
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       if: ${{ inputs.artifact_name }}
       with:
         name: ${{ inputs.artifact_name }}
