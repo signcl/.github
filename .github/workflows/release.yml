@@ -34,7 +34,7 @@ jobs:
         ref: ${{ github.ref_name }}
 
     - name: Download a single artifact
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       if: ${{ inputs.artifact_name }}
       with:
         name: ${{ inputs.artifact_name }}
