@@ -169,7 +169,7 @@ jobs:
         # UCloud UHub does not work well with the latest tag
         # Uncomment the following line when UHub fixes its shit
         flavor: |
-          latest=${{ inputs.custom_tag && 'true' || 'auto' }}
+          latest=${{ (inputs.custom_tag && inputs.hub_slug == '') && 'true' || 'false' }}
         # flavor: |
         #   latest=false
         tags: |
