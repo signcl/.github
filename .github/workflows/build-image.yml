@@ -168,10 +168,10 @@ jobs:
         # Manually define whether a tag should be tagged as `latest`
         # UCloud UHub does not work well with the latest tag
         # Uncomment the following line when UHub fixes its shit
-        # flavor: |
-        #   latest=${{ inputs.custom_tag && 'true' || 'auto' }}
         flavor: |
-          latest=false
+          latest=${{ inputs.custom_tag && 'true' || 'auto' }}
+        # flavor: |
+        #   latest=false
         tags: |
           type=semver,pattern={{version}},value=${{ inputs.custom_tag }}
           type=sha,enable=${{ inputs.custom_tag && 'false' || 'true' }},prefix=${{ steps.date.outputs.timestamp }}-
