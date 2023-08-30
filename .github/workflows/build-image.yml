@@ -28,6 +28,14 @@ on:
         description: 'Artifact to download and unpack before building image'
         required: false
         type: string
+      cache_key:
+        description: 'Cache key to restore by actions/cache before building image'
+        required: false
+        type: string
+      cache_path:
+        description: 'Cache path to restore by actions/cache before building image'
+        required: false
+        type: string
       deployment_env:
         required: false
         default: 'dev'
@@ -99,12 +107,24 @@ jobs:
     - name: Show current concurrency condition
       run: echo "::notice title=Concurrency Condition::${{ inputs.custom_tag || inputs.deployment_env }}-${{ github.head_ref || github.run_id }}"
 
+    - name: Download a single artifact
+      uses: actions/download-artifact@v3
+      if: ${{ inputs.artifact_name }}
+      with:
+        name: ${{ inputs.artifact_name }}
+
+    - name: Unzip artifact
+      if: ${{ inputs.artifact_name }}
+      run: tar -xvf artifact.tar
+
+
     - name: Restore cache
       uses: actions/cache/restore@v3
-      if: ${{ inputs.artifact_name }}
+      if: ${{ inputs.cache_path && inputs.cache_key }}
       id: restore-cache
       with:
-        key: ${{ inputs.artifact_name }}
+        path: ${{ inputs.cache_path }}
+        key: ${{ inputs.cache_key }}
 
     - name: Set current timestamp for image tag
       id: date
