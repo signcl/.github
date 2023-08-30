@@ -99,15 +99,12 @@ jobs:
     - name: Show current concurrency condition
       run: echo "::notice title=Concurrency Condition::${{ inputs.custom_tag || inputs.deployment_env }}-${{ github.head_ref || github.run_id }}"
 
-    - name: Download a single artifact
-      uses: actions/download-artifact@v3
+    - name: Restore cache
+      uses: actions/cache/restore@v3
       if: ${{ inputs.artifact_name }}
+      id: restore-cache
       with:
-        name: ${{ inputs.artifact_name }}
-
-    - name: Unzip artifact
-      if: ${{ inputs.artifact_name }}
-      run: tar -xvf artifact.tar
+        key: ${{ inputs.artifact_name }}
 
     - name: Set current timestamp for image tag
       id: date
