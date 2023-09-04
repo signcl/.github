@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         # Set ref to current branch to get the latest changes from previous jobs
@@ -45,7 +45,7 @@ jobs:
 
     - name: Download chglog configs
       if: ${{ inputs.chglog }}
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         repository: signcl/.github
         path: chglog-configs
