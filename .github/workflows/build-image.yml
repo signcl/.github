@@ -207,7 +207,7 @@ jobs:
         echo "::notice title=Git Tag::$TAG"
 
     - name: Build and push images
-      uses: docker/bake-action@v3
+      uses: docker/bake-action@v4
       with:
         files: |
           ${{ inputs.working_directory }}/docker-bake.hcl
