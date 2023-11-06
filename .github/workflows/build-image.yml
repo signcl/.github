@@ -102,7 +102,7 @@ jobs:
       git_tag: ${{ steps.getGitTag.outputs.git_tag }}
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Show current concurrency condition
       run: echo "::notice title=Concurrency Condition::${{ inputs.custom_tag || inputs.deployment_env }}-${{ github.head_ref || github.run_id }}"
