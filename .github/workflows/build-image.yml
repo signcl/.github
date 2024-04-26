@@ -81,8 +81,7 @@ on:
 
 jobs:
   build-image:
-    runs-on:
-      group: Default
+    runs-on: self-hosted
     environment:
       name: ${{ inputs.deployment_env }}
       url: ${{ inputs.deployment_url }}
