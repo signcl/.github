@@ -21,24 +21,24 @@ on:
         type: string
         default: .
       custom_tag:
-        description: 'Use custom contaienr tag, used by bump-version action to avoid creating additional commits'
+        description: "Use custom contaienr tag, used by bump-version action to avoid creating additional commits"
         required: false
         type: string
       artifact_name:
-        description: 'Artifact to download and unpack before building image'
+        description: "Artifact to download and unpack before building image"
         required: false
         type: string
       cache_key:
-        description: 'Cache key to restore by actions/cache before building image'
+        description: "Cache key to restore by actions/cache before building image"
         required: false
         type: string
       cache_path:
-        description: 'Cache path to restore by actions/cache before building image'
+        description: "Cache path to restore by actions/cache before building image"
         required: false
         type: string
       deployment_env:
         required: false
-        default: 'dev'
+        default: "dev"
         type: string
       deployment_url:
         required: false
@@ -46,30 +46,30 @@ on:
       docker_bake_targets:
         required: false
         type: string
-        default: 'build-all'
+        default: "build-all"
       ghcr_slug:
-        description: 'Default GitHub Container Registry'
+        description: "Default GitHub Container Registry"
         required: false
         type: string
       hub_slug:
-        description: 'Docker Hub, leave empty to skip pushing image to this registry'
+        description: "Docker Hub, leave empty to skip pushing image to this registry"
         required: false
         type: string
       acr_slug:
-        description: 'Aliyun Container Registry, leave empty to skip pushing image to this registry'
+        description: "Aliyun Container Registry, leave empty to skip pushing image to this registry"
         required: false
         type: string
       uhub_slug:
-        description: 'UCloud UHub, leave empty to skip pushing image to this registry'
+        description: "UCloud UHub, leave empty to skip pushing image to this registry"
         required: false
         type: string
       acr_url:
         required: false
-        default: 'registry.cn-beijing.aliyuncs.com'
+        default: "registry.cn-beijing.aliyuncs.com"
         type: string
       uhub_url:
         required: false
-        default: 'uhub.service.ucloud.cn'
+        default: "uhub.service.ucloud.cn"
         type: string
     outputs:
       image_tag:
@@ -102,127 +102,126 @@ jobs:
       git_tag: ${{ steps.getGitTag.outputs.git_tag }}
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Show current concurrency condition
-      run: echo "::notice title=Concurrency Condition::${{ inputs.custom_tag || inputs.deployment_env }}-${{ github.head_ref || github.run_id }}"
+      - name: Show current concurrency condition
+        run: echo "::notice title=Concurrency Condition::${{ inputs.custom_tag || inputs.deployment_env }}-${{ github.head_ref || github.run_id }}"
 
-    - name: Download a single artifact
-      uses: actions/download-artifact@v4
-      if: ${{ inputs.artifact_name }}
-      with:
-        name: ${{ inputs.artifact_name }}
+      - name: Download a single artifact
+        uses: actions/download-artifact@v4
+        if: ${{ inputs.artifact_name }}
+        with:
+          name: ${{ inputs.artifact_name }}
 
-    - name: Unzip artifact
-      if: ${{ inputs.artifact_name }}
-      run: tar -xvf artifact.tar
+      - name: Unzip artifact
+        if: ${{ inputs.artifact_name }}
+        run: tar -xvf artifact.tar
 
+      - name: Restore cache
+        uses: actions/cache/restore@v4
+        if: ${{ inputs.cache_path && inputs.cache_key }}
+        id: restore-cache
+        with:
+          path: ${{ inputs.cache_path }}
+          key: ${{ inputs.cache_key }}
 
-    - name: Restore cache
-      uses: actions/cache/restore@v4
-      if: ${{ inputs.cache_path && inputs.cache_key }}
-      id: restore-cache
-      with:
-        path: ${{ inputs.cache_path }}
-        key: ${{ inputs.cache_key }}
+      - name: Set current timestamp for image tag
+        id: date
+        run: |
+          timestamp=$(date +'%y%m%d%H%M%S')
+          echo $timestamp
+          echo "timestamp=$timestamp" >> $GITHUB_OUTPUT
 
-    - name: Set current timestamp for image tag
-      id: date
-      run: |
-        timestamp=$(date +'%y%m%d%H%M%S')
-        echo $timestamp
-        echo "timestamp=$timestamp" >> $GITHUB_OUTPUT
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v3
 
-    - name: Set up Docker Buildx
-      id: buildx
-      uses: docker/setup-buildx-action@v3
+      - name: Available platforms
+        run: echo ${{ steps.buildx.outputs.platforms }}
 
-    - name: Available platforms
-      run: echo ${{ steps.buildx.outputs.platforms }}
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Login to GitHub Container Registry
-      uses: docker/login-action@v3
-      with:
-        registry: ghcr.io
-        username: ${{ github.repository_owner }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Login to Docker Hub
+        if: ${{ github.event_name != 'pull_request' && inputs.hub_slug }}
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASS }}
 
-    - name: Login to Docker Hub
-      if: ${{ github.event_name != 'pull_request' && inputs.hub_slug }}
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKER_USER }}
-        password: ${{ secrets.DOCKER_PASS }}
+      - name: Login to Aliyun Container Registry
+        if: ${{ github.event_name != 'pull_request' && inputs.acr_slug }}
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ inputs.acr_url }}
+          username: ${{ secrets.ACR_USER }}
+          password: ${{ secrets.ACR_PASS }}
 
-    - name: Login to Aliyun Container Registry
-      if: ${{ github.event_name != 'pull_request' && inputs.acr_slug }}
-      uses: docker/login-action@v3
-      with:
-        registry: ${{ inputs.acr_url }}
-        username: ${{ secrets.ACR_USER }}
-        password: ${{ secrets.ACR_PASS }}
+      - name: Login to UCloud UHub
+        if: ${{ github.event_name != 'pull_request' && inputs.uhub_slug }}
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ inputs.uhub_url }}
+          username: ${{ secrets.UCLOUD_USER }}
+          password: ${{ secrets.UCLOUD_PASS }}
 
-    - name: Login to UCloud UHub
-      if: ${{ github.event_name != 'pull_request' && inputs.uhub_slug }}
-      uses: docker/login-action@v3
-      with:
-        registry: ${{ inputs.uhub_url }}
-        username: ${{ secrets.UCLOUD_USER }}
-        password: ${{ secrets.UCLOUD_PASS }}
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ inputs.acr_slug }}
+            ${{ inputs.uhub_slug }}
+            ${{ inputs.ghcr_slug }}
+            ${{ inputs.hub_slug }}
+          # Manually define whether a tag should be tagged as `latest`
+          # UCloud UHub does not work well with the latest tag
+          # Uncomment the following line when UHub fixes its shit
+          # flavor: |
+          #   latest=${{ (inputs.custom_tag && inputs.hub_slug == '') && 'true' || 'false' }}
+          flavor: |
+            latest=false
+          tags: |
+            type=semver,pattern={{version}},value=${{ inputs.custom_tag }}
+            type=sha,enable=${{ inputs.custom_tag && 'false' || 'true' }},prefix=${{ steps.date.outputs.timestamp }}-
 
-    - name: Docker meta
-      id: meta
-      uses: docker/metadata-action@v5
-      with:
-        images: |
-          ${{ inputs.acr_slug }}
-          ${{ inputs.uhub_slug }}
-          ${{ inputs.ghcr_slug }}
-          ${{ inputs.hub_slug }}
-        # Manually define whether a tag should be tagged as `latest`
-        # UCloud UHub does not work well with the latest tag
-        # Uncomment the following line when UHub fixes its shit
-        flavor: |
-          latest=${{ (inputs.custom_tag && inputs.hub_slug == '') && 'true' || 'false' }}
-        # flavor: |
-        #   latest=false
-        tags: |
-          type=semver,pattern={{version}},value=${{ inputs.custom_tag }}
-          type=sha,enable=${{ inputs.custom_tag && 'false' || 'true' }},prefix=${{ steps.date.outputs.timestamp }}-
+      - name: Get git tag
+        id: getGitTag
+        run: |
+          TAG="${{ inputs.custom_tag }}"
 
-    - name: Get git tag
-      id: getGitTag
-      run: |
-        TAG="${{ inputs.custom_tag }}"
+          if [[ "${{ inputs.custom_tag }}" == "" ]]; then
+            echo "meta.version=${{ steps.meta.outputs.version }}"
+            TAG="v${{ steps.meta.outputs.version }}"
+          fi
 
-        if [[ "${{ inputs.custom_tag }}" == "" ]]; then
-          echo "meta.version=${{ steps.meta.outputs.version }}"
-          TAG="v${{ steps.meta.outputs.version }}"
-        fi
+          echo "git_tag=$TAG" >> $GITHUB_OUTPUT
+          echo "::notice title=Git Tag::$TAG"
 
-        echo "git_tag=$TAG" >> $GITHUB_OUTPUT
-        echo "::notice title=Git Tag::$TAG"
+      - name: Build and push images
+        uses: docker/bake-action@v4
+        with:
+          files: |
+            ${{ inputs.working_directory }}/docker-bake.hcl
+            ${{ steps.meta.outputs.bake-file }}
+          targets: ${{ inputs.docker_bake_targets }}
+          push: ${{ github.event_name != 'pull_request' }}
+          set: |
+            *.cache-from=type=gha
+            *.cache-to=type=gha,mode=max
+            *.context=${{ inputs.working_directory }}
 
-    - name: Build and push images
-      uses: docker/bake-action@v4
-      with:
-        files: |
-          ${{ inputs.working_directory }}/docker-bake.hcl
-          ${{ steps.meta.outputs.bake-file }}
-        targets: ${{ inputs.docker_bake_targets }}
-        push: ${{ github.event_name != 'pull_request' }}
-        set: |
-          *.cache-from=type=gha
-          *.cache-to=type=gha,mode=max
-          *.context=${{ inputs.working_directory }}
-
-    - name: Check manifest
-      if: ${{ github.event_name != 'pull_request' && inputs.ghcr_slug }}
-      run: |
-        docker buildx imagetools inspect ${{ inputs.ghcr_slug }}:${{ steps.meta.outputs.version }}
+      - name: Check manifest
+        if: ${{ github.event_name != 'pull_request' && inputs.ghcr_slug }}
+        run: |
+          docker buildx imagetools inspect ${{ inputs.ghcr_slug }}:${{ steps.meta.outputs.version }}
 
     # May slow down workflow process. Disabled by default
     # - name: Inspect image
