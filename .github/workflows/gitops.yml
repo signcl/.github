@@ -20,11 +20,11 @@ jobs:
   gitops-dispatch:
     runs-on: ubuntu-latest
     steps:
-    - name: GitOps Repository Dispatch
-      if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v')
-      uses: peter-evans/repository-dispatch@v3
-      with:
-        token: ${{ secrets.PAT_TOKEN }}
-        repository: ${{ inputs.repository }}
-        event-type: ${{ inputs.event_type }}
-        client-payload: ${{ inputs.client_payload }}
+      - name: GitOps Repository Dispatch
+        if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v')
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+          repository: ${{ inputs.repository }}
+          event-type: ${{ inputs.event_type }}
+          client-payload: ${{ inputs.client_payload }}
