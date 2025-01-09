@@ -208,6 +208,7 @@ jobs:
       - name: Build and push images
         uses: docker/bake-action@v6
         with:
+          source: .
           files: |
             ${{ inputs.working_directory }}/docker-bake.hcl
             ${{ steps.meta.outputs.bake-file }}
