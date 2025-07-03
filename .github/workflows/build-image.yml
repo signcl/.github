@@ -189,7 +189,7 @@ jobs:
           flavor: |
             latest=false
           tags: |
-            type=semver,pattern={{version}},value=${{ inputs.custom_tag }}
+            type=raw,value=${{ inputs.custom_tag }},enable=${{ inputs.custom_tag && 'true' || 'false' }}
             type=sha,enable=${{ inputs.custom_tag && 'false' || 'true' }},prefix=${{ steps.date.outputs.timestamp }}-
 
       - name: Get git tag
