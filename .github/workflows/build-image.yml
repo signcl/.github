@@ -98,7 +98,7 @@ jobs:
         working-directory: ${{ inputs.working_directory }}
 
     outputs:
-      image_tag: ${{ steps.meta.outputs.version }}
+      image_tag: ${{ (inputs.custom_tag && steps.processTag.outputs.processed_tag) || steps.meta.outputs.version }}
       git_tag: ${{ steps.getGitTag.outputs.git_tag }}
 
     steps:
@@ -172,6 +172,25 @@ jobs:
           username: ${{ secrets.UCLOUD_USER }}
           password: ${{ secrets.UCLOUD_PASS }}
 
+      - name: Process custom tag
+        id: processTag
+        if: ${{ inputs.custom_tag }}
+        run: |
+          TAG="${{ inputs.custom_tag }}"
+          
+          # 检查是否为标准的语义化版本标签 (v + 数字.数字.数字格式)
+          if [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            # 只对标准语义化版本去掉 v 前缀
+            PROCESSED_TAG="${TAG#v}"
+            echo "Detected semver tag, removing 'v' prefix: $TAG -> $PROCESSED_TAG"
+          else
+            # 其他自定义标签保持原样
+            PROCESSED_TAG="$TAG"
+            echo "Custom tag kept as-is: $TAG"
+          fi
+          
+          echo "processed_tag=$PROCESSED_TAG" >> $GITHUB_OUTPUT
+
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
@@ -189,15 +208,16 @@ jobs:
           flavor: |
             latest=false
           tags: |
-            type=raw,value=${{ inputs.custom_tag }},enable=${{ inputs.custom_tag && 'true' || 'false' }}
+            type=raw,value=${{ steps.processTag.outputs.processed_tag || inputs.custom_tag }},enable=${{ inputs.custom_tag && 'true' || 'false' }}
             type=sha,enable=${{ inputs.custom_tag && 'false' || 'true' }},prefix=${{ steps.date.outputs.timestamp }}-
 
       - name: Get git tag
         id: getGitTag
         run: |
-          TAG="${{ inputs.custom_tag }}"
-
-          if [[ "${{ inputs.custom_tag }}" == "" ]]; then
+          if [[ "${{ inputs.custom_tag }}" != "" ]]; then
+            # 使用处理后的标签，但 git_tag 仍然保持 v 前缀用于 git 操作
+            TAG="v${{ steps.processTag.outputs.processed_tag }}"
+          else
             echo "meta.version=${{ steps.meta.outputs.version }}"
             TAG="v${{ steps.meta.outputs.version }}"
           fi
