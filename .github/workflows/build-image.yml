@@ -71,6 +71,11 @@ on:
         required: false
         default: "uhub.service.ucloud.cn"
         type: string
+      runner_type:
+        description: "Runner type to use for the job (e.g., ubuntu-latest, self-hosted, etc.)"
+        required: false
+        type: string
+        default: "self-hosted"
     outputs:
       image_tag:
         description: "Image tag from docker/metadata-action"
@@ -81,7 +86,7 @@ on:
 
 jobs:
   build-image:
-    runs-on: self-hosted
+    runs-on: ${{ inputs.runner_type }}
     environment:
       name: ${{ inputs.deployment_env }}
       url: ${{ inputs.deployment_url }}
