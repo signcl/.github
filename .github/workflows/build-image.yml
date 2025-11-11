@@ -15,6 +15,10 @@ on:
         required: false
       UCLOUD_PASS:
         required: false
+      VRP_USER:
+        required: false
+      VRP_PASS:
+        required: false
     inputs:
       working_directory:
         description: The folder containing the project to build
