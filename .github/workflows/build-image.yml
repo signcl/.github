@@ -56,11 +56,15 @@ on:
         required: false
         type: string
       acr_slug:
-        description: "Aliyun Container Registry, leave empty to skip pushing image to this registry"
+        description: "DEPRECATED, we no longer uses this registry. Aliyun Container Registry, leave empty to skip pushing image to this registry"
         required: false
         type: string
       uhub_slug:
         description: "UCloud UHub, leave empty to skip pushing image to this registry"
+        required: false
+        type: string
+      vrp_slug:
+        description: "Self-hosted VRP registry at UCloud Hong Kong"
         required: false
         type: string
       acr_url:
@@ -70,6 +74,10 @@ on:
       uhub_url:
         required: false
         default: "uhub.service.ucloud.cn"
+        type: string
+      vrp_url:
+        required: false
+        default: "r.vrp.moe"
         type: string
       runner_type:
         description: "Runner type to use for the job (e.g., ubuntu-latest, self-hosted, etc.)"
@@ -177,12 +185,20 @@ jobs:
           username: ${{ secrets.UCLOUD_USER }}
           password: ${{ secrets.UCLOUD_PASS }}
 
+      - name: Login to VRP Registry
+        if: ${{ github.event_name != 'pull_request' && inputs.vrp_slug }}
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ inputs.vrp_url }}
+          username: ${{ secrets.VRP_USER }}
+          password: ${{ secrets.VRP_PASS }}
+
       - name: Process custom tag
         id: processTag
         if: ${{ inputs.custom_tag }}
         run: |
           TAG="${{ inputs.custom_tag }}"
-          
+
           # 检查是否为标准的语义化版本标签 (v + 数字.数字.数字格式)
           if [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             # 只对标准语义化版本去掉 v 前缀
@@ -193,7 +209,7 @@ jobs:
             PROCESSED_TAG="$TAG"
             echo "Custom tag kept as-is: $TAG"
           fi
-          
+
           echo "processed_tag=$PROCESSED_TAG" >> $GITHUB_OUTPUT
 
       - name: Docker meta
@@ -205,6 +221,7 @@ jobs:
             ${{ inputs.uhub_slug }}
             ${{ inputs.ghcr_slug }}
             ${{ inputs.hub_slug }}
+            ${{ inputs.vrp_slug }}
           # Manually define whether a tag should be tagged as `latest`
           # UCloud UHub does not work well with the latest tag
           # Uncomment the following line when UHub fixes its shit
