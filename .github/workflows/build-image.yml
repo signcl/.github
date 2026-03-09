@@ -252,7 +252,7 @@ jobs:
           echo "::notice title=Git Tag::$TAG"
 
       - name: Build and push images
-        uses: docker/bake-action@v6
+        uses: docker/bake-action@v7
         with:
           source: .
           files: |
