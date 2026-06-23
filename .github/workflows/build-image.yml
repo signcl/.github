@@ -135,7 +135,7 @@ jobs:
         run: tar -xvf artifact.tar
 
       - name: Restore cache
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@v6
         if: ${{ inputs.cache_path && inputs.cache_key }}
         id: restore-cache
         with:
