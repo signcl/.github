@@ -260,6 +260,10 @@ jobs:
             ${{ steps.meta.outputs.bake-file }}
           targets: ${{ inputs.docker_bake_targets }}
           push: ${{ github.event_name != 'pull_request' }}
+          # Aliyun ACR rejects OCI 1.1 attestation manifests
+          # ("denied: unknown manifest class for application/vnd.oci.empty.v1+json"),
+          # so only disable default provenance for builds that push to ACR.
+          provenance: ${{ inputs.acr_slug != '' && 'false' || '' }}
           set: |
             *.cache-from=type=gha,scope=${{ github.workflow }}
             *.cache-to=type=gha,mode=max,scope=${{ github.workflow }}
